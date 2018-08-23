@@ -4,7 +4,7 @@ var diry
 var walk
 window.onload = () => {
     var gameConfig = {
-        width: 800,
+        width: 1400,
         height: 700,
         backgroundColor: 0xecf0f1,
         physics: {
@@ -24,6 +24,7 @@ window.onload = () => {
 }
 
 var player
+var enemy
 
 class initGame extends Phaser.Scene {
     constructor(){
@@ -31,6 +32,17 @@ class initGame extends Phaser.Scene {
     }
 
     preload(){
+
+        this.load.image("bullet", "/public/assets/bullet.png")
+
+        for (let i = 0; i <= 16; i++) {
+            this.load.image('enemy_move_' + i, '/public/assets/zombie/skeleton-move_' + i + ".png");
+        }
+
+        for (let i = 0; i <= 8; i++) {
+            this.load.image('enemy_attack_' + i, '/public/assets/zombie/skeleton-attack_' + i + ".png");
+        }
+
         for (let i = 0; i < 13; i++) {
             this.load.image('idle_'+i, '/public/assets/player/handgun/idle/survivor-idle_handgun_'+i+".png");
         }
@@ -38,8 +50,6 @@ class initGame extends Phaser.Scene {
         for (let i = 0; i < 13; i++) {
             this.load.image('move_'+i, '/public/assets/player/handgun/move/survivor-move_handgun_'+i+".png");
         }
-        // this.load.atlas("player_idle", "/public/assets/player/parado.png", "/public/assets/player/parado.json")
-        // this.load.atlas("player_idle", "/public/assets/player/parado.png", "/public/assets/player/parado.json")
         
     }
 
@@ -47,6 +57,9 @@ class initGame extends Phaser.Scene {
 
         var player_idle = []
         var player_move = []
+
+        var enemy_move = []
+        var enemy_attack = []
         
         for (let i = 0; i < 12; i++) {
             player_idle.push({ key: "idle_"+i })
@@ -59,6 +72,18 @@ class initGame extends Phaser.Scene {
                 player_move.push({ key: "move_"+i })
             }
         }
+
+        for (let i = 0; i <= 16; i++) {
+            enemy_move.push({ key: "enemy_move_" + i })
+        }
+
+        for (let i = 0; i <= 8; i++) {
+            enemy_attack.push({ key: "enemy_attack_" + i })
+        }
+
+        // for (let i = 0; i <= 8; i++) {
+        //     enemy_attack.push({ key: "enemy_attack_" + i })
+        // }
 
 
         this.anims.create({
@@ -75,84 +100,70 @@ class initGame extends Phaser.Scene {
             repeat: -1
         });
 
-        player = this.physics.add.sprite(500, 500, 'idle_0')
-        // player.anims.play("player_idle", true)
-        // .play('player_idle');
-        // player.anims.create({
-        //     key: "idle",
-        //     frames: this.anims.generateFrameNumbers("player_idle"),
-        //     framerate: 6,
-        //     yoyo: true,
-        //     repeat: -1
-        // })
-        // player.anims.add('player_idle');
+        this.anims.create({
+            key: 'enemy_move',
+            frames: enemy_move,
+            frameRate: 20,
+            repeat: -1
+        });
 
-        // player.animations.play('player_idle', 30, true);
-        this.input.mouse.capture = true;
+        this.anims.create({
+            key: 'enemy_attack',
+            frames: enemy_attack,
+            frameRate: 20,
+            repeat: -1
+        });
+
+        player = this.physics.add.sprite(700, 350, 'idle_0')
+
+        enemy = this.physics.add.sprite(200, 350, 'enemy_move_0')
+        enemy.play("enemy_move")
+
+        this.cameras.main.setSize(1400, 700);
+        
+        this.input.on('pointermove', function (pointer) {
+            let cursor = pointer;
+            let angle = Phaser.Math.Angle.BetweenPoints(player, cursor)
+            player.setAngle((360 / (2 * Math.PI)) * angle)
+        }, this);
+
+        this.input.on('pointerdown', function (pointer) {
+            // let cursor = pointer;
+            // let angle = Phaser.Math.Angle.BetweenPoints(player, cursor)
+            // var bullet = this.physics.add.sprite(player.x, player.y, "bullet")
+            // bullet.setVelocityX((360 / (2 * Math.PI)) * angle);
+        }, this);
     }
 
     update(){
         var cursors = this.input.keyboard.createCursorKeys();
         
-        
         if(cursors.left.isDown){
             player.play("player_move", true)
-            player.setVelocityX(-120);
+            player.setVelocityX(-150);
             player.setAngle(180)
         }else if(cursors.right.isDown){
             player.play("player_move", true)
-            player.setVelocityX(120);
+            player.setVelocityX(150);
             player.setAngle(360)
         }else if(cursors.up.isDown){
             player.play("player_move", true)
-            player.setVelocityY(-120);
+            player.setVelocityY(-150);
             player.setAngle(-90)
         }else if(cursors.down.isDown){
             player.play("player_move", true)
             player.setAngle(90)
-            player.setVelocityY(120);
+            player.setVelocityY(150);
         }else {
             player.play("player_idle", true)
-            
             player.body.velocity.setTo(0, 0)
         }
 
-        // console.log(this.input.activePointer);
         if (this.input.activePointer.isDown) {
             
-            dirX = this.input.x 
-            diry = this.input.y 
-            // this.physics.moveTo(player, dirX, diry, 400)   
-            walk = true 
-        // player walks
-        }
-        // console.log(this.input)
-        if(dirX == player.x){
-            // console.log("Player:"+player.x)
-            console.log("entrou!!!")
-            console.log("igual")
-            player.body.velocity.setTo(0, 0)
-            walk = false
 
         }
-        // if (this.input.mousePointer.isDown)
-        // {
-        //     console.log(cursors)
-        //     //  400 is the speed it will move towards the mouse
-        //     this.physics.arcade.moveToPointer(player, 400);
-            
-        //     //  if it's overlapping the mouse, don't move any more
-        //     if (Phaser.Rectangle.contains(player.body, this.input.x, this.input.y))
-        //     {
-        //         console.log(player.body)
-        //         console.log(player)
-        //         player.body.velocity.setTo(0, 0);
-        //     }
-        // }
-        // else
-        // {
-        //     player.body.velocity.setTo(0, 0);
-        // }
+        // this.physics.moveTo(enemy, player.x, player.y, 100)   
     
     }
 }
